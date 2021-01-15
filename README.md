@@ -38,7 +38,7 @@ I.	Explanatory Data Analysis:
 4.	Whether the platforms have consideration to teenager customers?
 5.	What are the most popular genres of American movies on different platforms? How the scores of genres are different?
 
-##Method:
+##Method: (Chi-square and Correlation)
 
-1.	Is there difference in the number of quality movies of 4 platforms?
+1.	Difference in the number of quality movies of 4 platforms
 2.	The correlation between the runtime of a show and its independent variables
