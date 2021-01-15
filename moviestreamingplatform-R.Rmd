@@ -1,0 +1,383 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+#load package 
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library("gplots")
+library(tidyr)
+library(corrplot)
+```
+
+
+```{r}
+
+#load data
+MOV = read.csv("C:\\Users\\nickh\\OneDrive - Northeastern University\\Notebooks\\IntermediateAnalytics\\project\\Movies.csv")
+
+#take a look at data
+str(MOV)
+## 'data.frame':    16744 obs. of  17 variables:
+##  $ X              : int  0 1 2 3 4 5 6 7 8 9 ...
+##  $ ID             : int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ Title          : Factor w/ 16744 levels "\"22\" A film about Veterans, Healthcare and Suicide.",..: 6734 14148 1492 1570 13561 11905 14433 4136 10473 6772 ...
+##  $ Year           : int  2010 1999 2018 1985 1966 2018 2002 2012 1981 2009 ...
+##  $ Age            : Factor w/ 6 levels "","13+","16+",..: 2 4 2 5 4 5 4 4 5 4 ...
+##  $ IMDb           : num  8.8 8.7 8.5 8.5 8.8 8.4 8.5 8.4 8.4 8.3 ...
+##  $ Rotten.Tomatoes: Factor w/ 100 levels "","10%","100%",..: 87 87 84 97 98 98 96 87 96 89 ...
+##  $ Netflix        : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ Hulu           : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Prime.Video    : int  0 0 0 0 1 0 1 0 0 0 ...
+##  $ Disney.        : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Type           : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ Directors      : Factor w/ 11339 levels "","A'Ali de Sousa",..: 1989 6292 811 9129 9754 1284 9220 8551 10211 8551 ...
+##  $ Genres         : Factor w/ 1910 levels "","Action","Action,Adventure",..: 178 407 176 509 1906 663 941 1678 3 572 ...
+##  $ Country        : Factor w/ 1304 levels "","Afghanistan,France",..: 1255 1061 1061 1061 583 1061 952 1061 1061 442 ...
+##  $ Language       : Factor w/ 1103 levels "","Aboriginal,English",..: 352 103 103 103 785 493 279 261 268 261 ...
+##  $ Runtime        : int  148 136 149 116 161 117 150 165 115 153 ...
+head(MOV)
+##   X ID                             Title Year Age IMDb Rotten.Tomatoes Netflix
+## 1 0  1                         Inception 2010 13+  8.8             87%       1
+## 2 1  2                        The Matrix 1999 18+  8.7             87%       1
+## 3 2  3            Avengers: Infinity War 2018 13+  8.5             84%       1
+## 4 3  4                Back to the Future 1985  7+  8.5             96%       1
+## 5 4  5    The Good, the Bad and the Ugly 1966 18+  8.8             97%       1
+## 6 5  6 Spider-Man: Into the Spider-Verse 2018  7+  8.4             97%       1
+##   Hulu Prime.Video Disney. Type                                   Directors
+## 1    0           0       0    0                           Christopher Nolan
+## 2    0           0       0    0              Lana Wachowski,Lilly Wachowski
+## 3    0           0       0    0                     Anthony Russo,Joe Russo
+## 4    0           0       0    0                             Robert Zemeckis
+## 5    0           1       0    0                                Sergio Leone
+## 6    0           0       0    0 Bob Persichetti,Peter Ramsey,Rodney Rothman
+##                                     Genres                      Country
+## 1         Action,Adventure,Sci-Fi,Thriller United States,United Kingdom
+## 2                            Action,Sci-Fi                United States
+## 3                  Action,Adventure,Sci-Fi                United States
+## 4                  Adventure,Comedy,Sci-Fi                United States
+## 5                                  Western     Italy,Spain,West Germany
+## 6 Animation,Action,Adventure,Family,Sci-Fi                United States
+##                  Language Runtime
+## 1 English,Japanese,French     148
+## 2                 English     136
+## 3                 English     149
+## 4                 English     116
+## 5                 Italian     161
+## 6         English,Spanish     117
+
+#Top Rating Movies (1990-2020)
+
+MOV_1990 = MOV %>% filter(Year > 1990)
+
+Top10_action <- MOV_1990 %>%
+  filter(str_detect(Genres, "Action")) %>% group_by(Genres) %>% arrange(desc(IMDb)) %>% select(Title,Year,IMDb,Rotten.Tomatoes, Type,Directors,Country,Netflix,Hulu,Language) %>% head(10) 
+## Adding missing grouping variables: `Genres`
+ggplot(Top10_action ,aes(reorder(Title,-IMDb),IMDb)) + geom_bar(stat = "identity",fill="red") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(x="Genres",y="IMDb",title="Action")
+
+Top10_thriller <- MOV_1990 %>%
+  filter(str_detect(Genres, "Thriller")) %>% group_by(Genres) %>% arrange(desc(IMDb)) %>% select(Title,Year,IMDb,Rotten.Tomatoes, Type,Directors,Country,Netflix,Hulu,Language) %>% head(10) 
+## Adding missing grouping variables: `Genres`
+ggplot(Top10_thriller ,aes(reorder(Title,-IMDb),IMDb)) + geom_bar(stat = "identity",fill="cadetblue") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(x="Genres",y="IMDb",title="Thriller")
+
+Top10_comedy <- MOV_1990 %>%
+  filter(str_detect(Genres, "Comedy")) %>% group_by(Genres) %>% arrange(desc(IMDb)) %>% select(Title,Year,IMDb,Rotten.Tomatoes, Type,Directors,Country,Netflix,Hulu,Language) %>% head(10) 
+## Adding missing grouping variables: `Genres`
+ggplot(Top10_comedy,aes(reorder(Title,-IMDb),IMDb)) + geom_bar(stat = "identity",fill="tan1") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(x="Genres",y="IMDb",title="Comedy")
+
+Top10_horror <- MOV_1990 %>%
+  filter(str_detect(Genres, "Horror")) %>% group_by(Genres) %>% arrange(desc(IMDb)) %>% select(Title,Year,IMDb,Rotten.Tomatoes, Type,Directors,Country,Netflix,Hulu,Language) %>% head(10) 
+## Adding missing grouping variables: `Genres`
+ggplot(Top10_horror,aes(reorder(Title,-IMDb),IMDb)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ labs(x="Genres",y="IMDb",title="Horror")
+
+Top10_romance <- MOV_1990 %>%
+filter(str_detect(Genres, "Romance")) %>% group_by(Genres) %>% arrange(desc(IMDb)) %>% select(Title,Year,IMDb,Rotten.Tomatoes, Type,Directors,Country,Netflix,Hulu,Language) %>% head(10) 
+## Adding missing grouping variables: `Genres`
+ggplot(Top10_romance,aes(reorder(Title,-IMDb),IMDb)) + geom_bar(stat = "identity",fill= "yellowgreen") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + labs(x="Genres",y="IMDb",title="Romance")
+
+```
+```{r}
+#The Consideration For Age-Limited Movies
+#Whether the different platforms consider the kid viewers
+summary(MOV$Age)
+##       13+  16+  18+   7+  all 
+## 9390 1255  320 3474 1462  843
+netflix_age = MOV %>% filter(Age == "7+") %>% select(ID,Title,Netflix,Hulu,Prime.Video,Disney.,Genres) %>% group_by(Netflix) %>% count
+
+hulu_age = MOV %>% filter(Age == "7+") %>% select(ID,Title,Netflix,Hulu,Prime.Video,Disney.,Genres) %>% group_by(Hulu) %>% count
+
+prime.video_age = MOV %>% filter(Age == "7+") %>% select(ID,Title,Netflix,Hulu,Prime.Video,Disney.,Genres) %>% group_by(Prime.Video) %>% count
+
+disney_age = MOV %>% filter(Age == "7+") %>% select(ID,Title,Netflix,Hulu,Prime.Video,Disney.,Genres) %>% group_by(Disney.) %>% count
+
+channels = c("Netflix","Hulu","Prime","Disney")
+n = rbind(netflix_age[2,2] / 1462,hulu_age[2,2] / 1462,prime.video_age[2,2]/ 1462,disney_age[2,2]/ 1462)
+n_channels = cbind(channels,n)
+ggplot(n_channels,aes(x="",y=n,fill=channels)) + geom_bar(width = 1, stat = "identity") + coord_polar("y", start=0) + labs(title = "The rate of 7+ movies on 4 platforms")  + theme(axis.text.x=element_blank()) 
+
+```
+
+
+```{r}
+#Top Platforms For Non-Speaking English Customers
+#Top platforms contains foreign language movies
+not_USA_netflix = filter(MOV, !grepl("United States",Country)) 
+not_USA_netflix = not_USA_netflix %>% subset(Netflix == "1") %>% select(ID,Title,Genres,Country) %>% count()
+
+not_USA_hulu = filter(MOV, !grepl("United States",Country)) 
+not_USA_hulu = not_USA_hulu %>% subset(Hulu == "1") %>% select(ID,Title,Genres,Country) %>% count()
+
+not_USA_prime = filter(MOV, !grepl("United States",Country)) 
+not_USA_prime = not_USA_prime %>% subset(Prime.Video == "1") %>% select(ID,Title,Genres,Country) %>% count()
+
+not_USA_disney = filter(MOV, !grepl("United States",Country)) 
+not_USA_disney = not_USA_disney %>% subset(Disney. == "1") %>% select(ID,Title,Genres,Country) %>% count()
+
+not_USA = cbind(not_USA_netflix, not_USA_hulu, not_USA_prime, not_USA_disney)
+colnames(not_USA) = c("netflix","hulu","prime","disney")
+
+Count = t(not_USA)
+not_USA = data.frame(Platform= row.names(Count), Count, row.names=NULL)
+ggplot(not_USA,aes(Platform,Count)) + geom_bar(stat="identity",fill="plum1")
+
+```
+
+
+```{r}
+#Top Movies From Different Genres On Platforms
+#4.What is the most popular genres of American movies in three platforms ? Whether these movies from that each genres get different scores ?
+
+#Netflix
+Action = MOV %>% filter(Netflix == 1,str_detect(Genres, "Action"),Country == "United States")  %>% count()
+Romance = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Romance"),Country == "United States")  %>% count()
+Horror = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Horror"),Country == "United States")  %>% count()
+Thriller = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Thriller"),Country == "United States")  %>% count()
+Comedy = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Comedy"),Country == "United States")  %>% count()
+
+Netflix = data.frame(Action = Action,Romance = Romance,Horror = Horror, Thriller = Thriller, Comedy = Comedy)
+
+colnames(Netflix) = c("Action","Romance","Horror","Thriller","Comedy")
+Count = t(Netflix)
+Netflix = data.frame(Genres= row.names(Count), Count, row.names=NULL) 
+
+#Hulu
+Action = MOV %>% filter(Hulu == 1,str_detect(Genres, "Action"),Country == "United States")  %>% count()
+Romance = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Romance"),Country == "United States")  %>% count()
+Horror = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Horror"),Country == "United States")  %>% count()
+Thriller = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Thriller"),Country == "United States")  %>% count()
+Comedy = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Comedy"),Country == "United States")  %>% count()
+
+Hulu = data.frame(Action = Action,Romance = Romance,Horror = Horror, Thriller = Thriller, Comedy = Comedy)
+
+colnames(Hulu) = c("Action","Romance","Horror","Thriller","Comedy")
+Count = t(Hulu)
+Hulu = data.frame(Genres= row.names(Count), Count, row.names=NULL) 
+
+
+#Prime 
+Action = MOV %>% filter(Prime.Video == 1,str_detect(Genres, "Action"),Country == "United States")  %>% count()
+Romance = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Romance"),Country == "United States")  %>% count()
+Horror = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Horror"),Country == "United States")  %>% count()
+Thriller = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Thriller"),Country == "United States")  %>% count()
+Comedy = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Comedy"),Country == "United States")  %>% count()
+
+Prime.Video = data.frame(Action = Action,Romance = Romance,Horror = Horror, Thriller = Thriller, Comedy = Comedy)
+
+colnames(Prime.Video) = c("Action","Romance","Horror","Thriller","Comedy")
+
+Count = t(Prime.Video)
+Prime.Video = data.frame(Genres= row.names(Count), Count, row.names=NULL)
+
+
+#Disney 
+Action = MOV %>% filter(Disney. == 1,str_detect(Genres, "Action"),Country == "United States")  %>% count()
+Romance = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Romance"),Country == "United States")  %>% count()
+Horror = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Horror"),Country == "United States")  %>% count()
+Thriller = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Thriller"),Country == "United States")  %>% count()
+Comedy = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Comedy"),Country == "United States")  %>% count()
+
+Disney = data.frame(Action = Action,Romance = Romance,Horror = Horror, Thriller = Thriller, Comedy = Comedy)
+
+colnames(Disney) = c("Action","Romance","Horror","Thriller","Comedy")
+Count = t(Disney)
+Disney = data.frame(Genres= row.names(Count), Count, row.names=NULL)
+#Netflix
+Action = MOV %>% filter(Netflix == 1,str_detect(Genres, "Action"),Country == "United States")  %>% count()
+Romance = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Romance"),Country == "United States")  %>% count()
+Horror = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Horror"),Country == "United States")  %>% count()
+Thriller = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Thriller"),Country == "United States")  %>% count()
+Comedy = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Comedy"),Country == "United States")  %>% count()
+
+Netflix = data.frame(Action = Action,Romance = Romance,Horror = Horror, Thriller = Thriller, Comedy = Comedy)
+
+colnames(Netflix) = c("Action","Romance","Horror","Thriller","Comedy")
+Count = t(Netflix)
+Netflix = data.frame(Genres= row.names(Count), Count, row.names=NULL) 
+
+#Netflix
+Action = MOV %>% filter(Netflix == 1,str_detect(Genres, "Action"),Country == "United States")
+avg_Ac = mean(Action[,'IMDb'])
+
+Romance = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Romance"),Country == "United States")
+avg_Ro = mean(Romance[,'IMDb'])
+
+Horror = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Horror"),Country == "United States") 
+avg_Ho = mean(Horror[,'IMDb'])
+Thriller = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Thriller"),Country == "United States")
+avg_Th = mean(Thriller[,'IMDb'],na.rm =TRUE)
+Comedy = MOV %>%  filter(Netflix == 1,str_detect(Genres, "Comedy"),Country == "United States")
+avg_Co = mean(Comedy[,'IMDb'],na.rm =TRUE)
+
+Netflix['IMDb'] =  c(avg_Ac,avg_Ro,avg_Ho,avg_Th,avg_Co)
+
+#Plot
+ggplot(Netflix) + 
+  geom_col(aes(x = Genres, y = Count), size = 1, colour="sienna3", fill = "tan1") +
+  geom_line(aes(x = Genres, y = IMDb*50), size = 1.5, color="black", group = 1,stat="identity") + scale_y_continuous(sec.axis = sec_axis(~./50,name = "IMDb Mean Rate"),name="Number of Movies") + labs(title="Netflix")
+
+#Hulu
+Action = MOV %>% filter(Hulu == 1,str_detect(Genres, "Action"),Country == "United States")
+avg_Ac = mean(Action[,'IMDb'])
+
+Romance = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Romance"),Country == "United States")
+avg_Ro = mean(Romance[,'IMDb'])
+
+Horror = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Horror"),Country == "United States") 
+avg_Ho = mean(Horror[,'IMDb'],na.rm =TRUE)
+Thriller = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Thriller"),Country == "United States")
+avg_Th = mean(Thriller[,'IMDb'],na.rm =TRUE)
+Comedy = MOV %>%  filter(Hulu == 1,str_detect(Genres, "Comedy"),Country == "United States")
+avg_Co = mean(Comedy[,'IMDb'],na.rm =TRUE)
+
+Hulu['IMDb'] =  c(avg_Ac,avg_Ro,avg_Ho,avg_Th,avg_Co)
+
+#Plot
+ggplot(Hulu) + 
+  geom_col(aes(x = Genres, y = Count), size = 1, colour="coral2", fill = "coral2") +
+  geom_line(aes(x = Genres, y = IMDb*15), size = 1.5, color="black", group = 1,stat="identity") + scale_y_continuous(sec.axis = sec_axis(~./15,name = "IMDb Mean Rate"),name="Number of Movies") + labs(title="Hulu")
+
+#Prime.Video
+Action = MOV %>% filter(Prime.Video == 1,str_detect(Genres, "Action"),Country == "United States")
+avg_Ac = mean(Action[,'IMDb'],na.rm =TRUE)
+
+Romance = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Romance"),Country == "United States")
+avg_Ro = mean(Romance[,'IMDb'],na.rm =TRUE)
+
+Horror = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Horror"),Country == "United States") 
+avg_Ho = mean(Horror[,'IMDb'],na.rm =TRUE)
+Thriller = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Thriller"),Country == "United States")
+avg_Th = mean(Thriller[,'IMDb'],na.rm =TRUE)
+Comedy = MOV %>%  filter(Prime.Video == 1,str_detect(Genres, "Comedy"),Country == "United States")
+avg_Co = mean(Comedy[,'IMDb'],na.rm =TRUE)
+
+Prime.Video['IMDb'] =  c(avg_Ac,avg_Ro,avg_Ho,avg_Th,avg_Co)
+
+#Plot
+ggplot(Prime.Video) + 
+  geom_col(aes(x = Genres, y = Count), size = 1, colour="chartreuse4", fill = "chartreuse4") +
+  geom_line(aes(x = Genres, y = IMDb*1000), size = 1.5, color="black", group = 1,stat="identity") + scale_y_continuous(sec.axis = sec_axis(~./1000,name = "IMDb Mean Rate"),name="Number of Movies") + labs(title="Prime.Video")
+
+#Disney
+Action = MOV %>% filter(Disney. == 1,str_detect(Genres, "Action"),Country == "United States")
+avg_Ac = mean(Action[,'IMDb'],na.rm =TRUE)
+
+Romance = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Romance"),Country == "United States")
+avg_Ro = mean(Romance[,'IMDb'],na.rm =TRUE)
+
+Horror = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Horror"),Country == "United States") 
+avg_Ho = mean(Horror[,'IMDb'],na.rm =TRUE)
+Thriller = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Thriller"),Country == "United States")
+avg_Th = mean(Thriller[,'IMDb'],na.rm =TRUE)
+Comedy = MOV %>%  filter(Disney. == 1,str_detect(Genres, "Comedy"),Country == "United States")
+avg_Co = mean(Comedy[,'IMDb'],na.rm =TRUE)
+
+Disney['IMDb'] =  c(avg_Ac,avg_Ro,avg_Ho,avg_Th,avg_Co)
+
+
+#Plot
+ggplot(Disney) + 
+  geom_col(aes(x = Genres, y = Count), size = 1, colour="cadetblue", fill = "cadetblue") +
+  geom_line(aes(x = Genres, y = IMDb*40), size = 1.5, color="black", group = 1,stat="identity") + scale_y_continuous(sec.axis = sec_axis(~./40,name = "IMDb Mean Rate"),name="Number of Movies") + labs(title="Disney")
+
+```
+```{r}
+#Is there difference in the number of quality movies of 4 platforms?
+#Assign the string value into scores
+MOV$IMDb = MOV$IMDb %>% replace_na(mean(MOV$IMDb,na.rm=TRUE))
+MOV$IMDb = with(MOV, ifelse(IMDb >=7 , "Good",
+                  ifelse(IMDb >=5, "Average", "Bad")))
+#Total movies
+MOV %>% group_by(IMDb) %>% count()
+names(table)
+#shape the data.frame
+x = MOV %>% gather(Platform,Yes,Netflix:Disney.)
+x = x[!(x$Yes %in% c(0)), ]
+head(x,10)
+
+#count & apply chisquared
+table = table(x$IMDb,x$Platform)
+chi = chisq.test(table)
+table = data.frame(table)
+names(table) = c("Evaluation","Platform","Num")
+table
+#plot the table
+p <- ggplot(table, aes(x =Platform, y = Evaluation)) 
+p+geom_point(aes(size=Num),colour="cadetblue")+theme(panel.background=element_blank(), panel.border = element_rect(colour = "blue", fill=NA, size=1))
+
+MOV = read.csv("C:\\Users\\nickh\\OneDrive - Northeastern University\\Notebooks\\IntermediateAnalytics\\project\\Movies.csv")
+
+x = MOV %>% gather(Platform,Yes,Netflix:Disney.)
+x = x[!(x$Yes %in% c(0)), ]
+head(x,10)
+table = table(x$Platform,x$IMDb)
+#summary
+round(chi$residuals,3)
+
+#plot the correlation between the residuals
+corrplot(round(chi$residuals,3), is.cor = FALSE)
+
+# Contibution in percentage (%)
+contrib <- 100*round(chi$residuals,3)^2/chi$statistic
+round(contrib, 3)
+
+# Visualize the contribution
+corrplot(contrib, is.cor = FALSE)
+
+# printing the p-value
+chi$p.value
+# printing the mean
+chi$statistic
+
+#load data
+MOV = read.csv("C:\\Users\\nickh\\OneDrive - Northeastern University\\Notebooks\\IntermediateAnalytics\\project\\Movies.csv")
+MOV$IMDb = MOV$IMDb %>% replace_na(mean(MOV$IMDb,na.rm=TRUE))
+#Whether the current movies is better than old movies ?
+horror_movies = MOV %>% filter(str_detect(Genres, "Horror")) %>% select(Year,IMDb,Age,Runtime)
+action_movies = MOV %>% filter(str_detect(Genres, "Action")) %>% select(Year,IMDb,Age,Runtime)
+action_movies = MOV %>% filter(str_detect(Genres, "Drama")) %>% select(Year,IMDb,Age,Runtime)
+
+#linear relationship
+scatter.smooth(x=horror_movies$Year, y=horror_movies$IMDb, main="IMDb ~ Year")  
+
+#check outlier
+par(mfrow=c(1, 2))  # divide graph area in 2 columns
+boxplot(horror_movies$Year, main="Year", sub=paste("Outlier rows: ", boxplot.stats(horror_movies$Year)$out)) 
+boxplot(horror_movies$IMDb, main="IMDb", sub=paste("Outlier rows: ", boxplot.stats(horror_movies$IMDb)$out)) 
+
+#check correlation
+cor(horror_movies$Year,horror_movies$IMDb)
+
+
+model = lm(IMDb~Year,horror_movies)
+sum = summary(model)
+sum
+AIC(model) 
+
+par(mfrow=c(2,2)) 
+plot(model)
+```
+
+
